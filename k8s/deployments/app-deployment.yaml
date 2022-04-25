@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+    name: ip-location 
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: ip-location # defines how the Deployment finds which Pods to manage
+    template:
+        metadata:
+            labels:
+                app: ip-location 
+        spec:
+            containers:
+                - name: svc-ip-location-container # name of the container running inside the Pod
+                  image: "svc-ip-location-image:latest"
+                  imagePullPolicy: Never # stop pulling from image repository
+                  ports:
+                    - containerPort: 8080 
+                  livenessProbe: # remember our health and liveness endpoints?
+                    httpGet:
+                      path: /health
+                      port: 8080
+                      scheme: HTTP
+                    initialDelaySeconds: 5
+                    periodSeconds: 15
+                    timeoutSeconds: 5
+                  readinessProbe: 
+                    httpGet:
+                      path: /readiness
+                      port: 8080
+                      scheme: HTTP
+                    initialDelaySeconds: 5
+                    timeoutSeconds: 1   
+                  env: 
+                    - name: IPSTACK_API_KEY 
+                      valueFrom:
+                        secretKeyRef:
+                            name: app-secret # name of the secret
+                            key: apikey # import the value of 'apikey' from app-secret
+                            
+                    - name: REDIS_URL
+                      valueFrom:
+                        configMapKeyRef:
+                            name: app-configmap # name of the config-map
+                            key: redis-service # import the value of 'redis-service' from app-configmap
+
+                    - name: REDIS_PASSWORD 
+                      valueFrom:
+                        secretKeyRef:
+                            name: app-secret 
+                            key: redis-passwd
+---
+
+kind: Service 
+apiVersion: v1
+metadata:
+  name: ip-location  
+spec:
+  type: NodePort 
+  ports:
+  - name: http
+    port: 80 
+    targetPort: 8080 
+    nodePort: 30000 
+    
+  selector:
+      app: ip-location 
