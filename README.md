@@ -3,7 +3,15 @@
 In this example we are going to deploy a simple app which consists of a service and a small redis cluster. The app gives back an Geolocation data based on the IP-address provided. It also caches requests so if you already requested geodata for the same IP-address - you're going to get the data from Redis instead of API-call to external data provider.
 
 The code of the app is out of the focus today. Let's focus on the k8s objects and how we use them.
-  
+
+# Prerequisites
+
+You need to have Minikube installed. Follow the guide here: https://kubernetes.io/ru/docs/tasks/tools/install-minikube/
+
+Then just start the cluster with 
+
+`minikube start
+`
 
 # Step-by-step  
 
